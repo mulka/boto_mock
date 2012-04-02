@@ -2,10 +2,10 @@ from boto_mock.dynamodb.layer1 import Layer1
 from boto_mock.dynamodb.table import Table
 from boto_mock.dynamodb.schema import Schema
 from boto_mock.dynamodb.types import get_dynamodb_type
-
+    
 class Layer2(object):
-    def __init__(self, filename):
-        self.layer1 = Layer1(filename)
+    def __init__(self):
+        self.layer1 = Layer1()
         
     def get_table(self, name):
         response = self.layer1.describe_table(name)
@@ -34,3 +34,8 @@ class Layer2(object):
             range_key['AttributeType'] = range_key_type
             schema['RangeKeyElement'] = range_key
         return Schema(schema)
+
+    def put_item(self, item):
+        response = self.layer1.put_item(item.table.name,
+                                        item)
+        return response

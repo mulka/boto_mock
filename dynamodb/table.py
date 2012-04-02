@@ -1,3 +1,4 @@
+from boto_mock.dynamodb.item import Item
 from boto_mock.dynamodb.schema import Schema
 
 class Table(object):
@@ -44,3 +45,7 @@ class Table(object):
 
     def delete(self):
         self.layer2.delete_table(self)
+
+    def new_item(self, attrs=None,
+                 item_class=Item):
+        return item_class(self, attrs)
