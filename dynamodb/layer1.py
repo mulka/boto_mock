@@ -7,13 +7,17 @@ class Layer1(object):
     def __init__(self):
         self.conn = sqlite3.connect('dynamodb.db', check_same_thread = False)
         
-    def describe_table(self, table_name):
+    def _pragma(self, table_name):
         c = self.conn.cursor()
         c.execute('PRAGMA table_info(' + table_name + ')')
         rows = []
         for row in c:
             rows.append(row)
         c.close()
+        return rows
+
+    def describe_table(self, table_name):
+        rows = self._pragma(table_name)
         
         key_schema = {
             "HashKeyElement":{"AttributeName": rows[0][1],"AttributeType": self.type_from_sqlite[rows[0][2]]}
@@ -44,4 +48,16 @@ class Layer1(object):
         
         sql = 'INSERT INTO ' + table_name + ' VALUES (' + values + ')'
         self.conn.execute(sql)
-    
+        
+    def scan(self, table_name):
+        pragma = self._pragma(table_name)
+        c = self.conn.cursor()
+        c.execute('SELECT * FROM ' + table_name)
+        rows = []
+        for row in c:
+            item = {}
+            for i in xrange(len(row)):
+                item[pragma[i][1]] = row[i]
+            rows.append(item)
+        c.close()
+        return {'Items': rows}

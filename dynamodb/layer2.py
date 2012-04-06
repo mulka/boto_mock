@@ -1,4 +1,5 @@
 from boto_mock.dynamodb.layer1 import Layer1
+from boto_mock.dynamodb.item import Item
 from boto_mock.dynamodb.table import Table
 from boto_mock.dynamodb.schema import Schema
 from boto_mock.dynamodb.types import get_dynamodb_type
@@ -39,3 +40,9 @@ class Layer2(object):
         response = self.layer1.put_item(item.table.name,
                                         item)
         return response
+    def scan(self, table):
+        response = self.layer1.scan(table.name)
+        if response:
+            for item in response['Items']:
+                yield Item(table, attrs=item)
+        
