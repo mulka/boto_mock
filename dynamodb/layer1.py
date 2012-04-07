@@ -49,6 +49,33 @@ class Layer1(object):
         sql = 'INSERT INTO ' + table_name + ' VALUES (' + values + ')'
         self.conn.execute(sql)
         
+    def query(self, table_name, hash_key, start=None, end=None,
+              scan_index_forward=True):
+        pragma = self._pragma(table_name)
+        
+        sql = 'SELECT * FROM ' + table_name + ' WHERE `' + pragma[0][1] + "` = '" + hash_key + "'"
+        if start:
+            sql += ' AND `' + pragma[1][1] + "` >= '" + str(start) + "'"
+        if end:
+            sql += ' AND `' + pragma[1][1] + "` <= '" + str(end) + "'"
+        
+        if scan_index_forward:
+            sql += ' ORDER BY `' + pragma[1][1] + '` ASC'
+        else:
+            sql += ' ORDER BY `' + pragma[1][1] + '` DESC'
+            
+        c = self.conn.cursor()
+        c.execute(sql)
+        rows = []
+        for row in c:
+            item = {}
+            for i in xrange(len(row)):
+                item[pragma[i][1]] = row[i]
+            rows.append(item)
+        c.close()
+        
+        return {'Items': rows}
+        
     def scan(self, table_name):
         pragma = self._pragma(table_name)
         c = self.conn.cursor()

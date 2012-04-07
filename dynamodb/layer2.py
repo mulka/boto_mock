@@ -2,7 +2,7 @@ from boto_mock.dynamodb.layer1 import Layer1
 from boto_mock.dynamodb.item import Item
 from boto_mock.dynamodb.table import Table
 from boto_mock.dynamodb.schema import Schema
-from boto_mock.dynamodb.types import get_dynamodb_type
+from boto_mock.dynamodb.types import get_dynamodb_type, dynamize_value
     
 class Layer2(object):
     def __init__(self):
@@ -40,6 +40,24 @@ class Layer2(object):
         response = self.layer1.put_item(item.table.name,
                                         item)
         return response
+        
+    def query(self, table, hash_key, range_key_condition=None,
+              scan_index_forward=True):
+        if range_key_condition and range_key_condition.__class__.__name__ == 'BETWEEN':
+            start = range_key_condition.v1
+            end = range_key_condition.v2
+        else:
+            start = None
+            end = None
+        response = True
+        n = 0
+        response = self.layer1.query(table.name,
+                                     hash_key,
+                                     start, end, 
+                                     scan_index_forward)
+        for item in response['Items']:
+            yield Item(table, attrs=item)
+        
     def scan(self, table):
         response = self.layer1.scan(table.name)
         if response:
