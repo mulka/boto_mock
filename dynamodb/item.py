@@ -41,9 +41,8 @@ class Item(dict):
         return self.table.layer2.update_item(self, expected_value,
                                              return_values)
 
-    def delete(self, expected_value=None, return_values=None):
-        return self.table.layer2.delete_item(self, expected_value,
-                                             return_values)
+    def delete(self):
+        return self.table.layer2.delete_item(self)
 
     def put(self):
         return self.table.layer2.put_item(self)

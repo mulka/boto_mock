@@ -2,6 +2,7 @@ from boto_mock.dynamodb.layer1 import Layer1
 from boto_mock.dynamodb.item import Item
 from boto_mock.dynamodb.table import Table
 from boto_mock.dynamodb.schema import Schema
+from boto.dynamodb.batch import BatchWriteList
 from boto_mock.dynamodb.types import get_dynamodb_type, dynamize_value
     
 class Layer2(object):
@@ -40,7 +41,10 @@ class Layer2(object):
         response = self.layer1.put_item(item.table.name,
                                         item)
         return response
-        
+    
+    def delete_item(self, item):
+        return self.layer1.delete_item(item.table.name, item.hash_key, item.range_key)
+
     def query(self, table, hash_key, range_key_condition=None,
               scan_index_forward=True):
         if range_key_condition and range_key_condition.__class__.__name__ == 'BETWEEN':
@@ -63,4 +67,12 @@ class Layer2(object):
         if response:
             for item in response['Items']:
                 yield Item(table, attrs=item)
-        
+    
+    def new_batch_write_list(self):
+        return BatchWriteList(self)
+
+    def batch_write_item(self, batch_list):
+        for batch in batch_list:
+            for item in batch.puts:
+                self.put_item(item)
+        return {'UnprocessedItems': {}}
